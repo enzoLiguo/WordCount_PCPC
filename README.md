@@ -20,3 +20,5 @@ mpirun -np [N_PROC] –hostfile hfile  ./esameLiguorino
 ```
 
 In fase di run del programma verrà chiesto all’utente il numero di file da inserire nella lista e successivamente il nome del file, nel mio caso all’interno del repository ci sono anche i tre file che sono stati utilizzati come test.
+
+Report file: README_LIGUORINO.MD
