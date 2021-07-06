@@ -162,14 +162,10 @@
 
 				MPI_Bcast(list_file,MAX_NUMBER_FILE,typeNameFile,0,MPI_COMM_WORLD);
 
-				//TODO Create method
+				//If it is the last rank, add the max of words with the rest
 				if(myrank == common_size-1) {
-					maxParole = maxWords;
-					int resto = maxResto;
-                    maxParole += resto;
-				} else {
-					maxParole = maxWords;
-				}
+                    maxWords += maxResto;
+                }
 
 			    	int count_read_word = 0;
 			    	//Initialize words count to 0
@@ -209,7 +205,7 @@
 				  		}
 			    		
 			    		//Read the word in text file and create the array containing word and occurrence
-			    		while (fscanf(fp, "%s", word) != EOF && count_read_word<maxParole ){
+			    		while (fscanf(fp, "%s", word) != EOF && count_read_word<maxWords ){
 
 			    			  //Position of curson in file
 			    			  currentPositionInFile = ftell(fp);
@@ -244,26 +240,29 @@
 			          	}
 
 			          
-			          //Check the reason why I left the while
+			          //Check the reason why I left the while in case of myrank < commonsize-1
+			          //First case max number of words not reached but I have reached the end of the file
 			          if(myrank < common_size-1 || common_size == 2) {
-				          if(count_read_word < maxParole && feof(fp)) {
+				          if(count_read_word < maxWords && feof(fp)) {
 				          	startOfAnotherPosition = 0;
 				          	fclose(fp);
 				          	indexFile++;
 				          }
 			      	  }
 
+			      	  //Equal case but rank is equal a commonsize-1
 			      	  if(myrank == common_size-1) {
-			      	  	if(count_read_word < maxParole && feof(fp)) {
+			      	  	if(count_read_word < maxWords && feof(fp)) {
 				          	startOfAnotherPosition = 0;
 				          	fclose(fp);
 				          	indexFile++;
 				          }
 			      	  }
 
-			      	  //Check the reason why I left the while
-			          if (count_read_word == maxParole)
+			      	  ////Second case max number of words reached
+			          if (count_read_word == maxWords)
 			          {
+			          	//If have reached the end of the file
 			          	if(feof(fp)){
 			          		if(word[0] == '\0') {
 			          			startOfAnotherPosition = 0;
@@ -283,7 +282,7 @@
 				          	startOfAnotherPosition = 1; 	
 			          	}
 			          }
-		      		}while(count_read_word < maxParole);
+		      		}while(count_read_word < maxWords);
 
 		      	//The useful information to understand how and which file to open is sent to the next process
 		      	if(myrank < common_size-1) {
