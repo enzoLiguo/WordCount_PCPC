@@ -68,12 +68,12 @@ MPI_Bcast(&maxWords,1,MPI_INT,0,MPI_COMM_WORLD);
 MPI_Bcast(&maxResto,1,MPI_INT,0,MPI_COMM_WORLD);
 ```
 
-La situazione particolare può avvenire quando un processore intermedio arriva al numero massimo di parole e gli manca solo l’ultima da leggere, in questo caso faccio si che legga anche l’ultima parola del file stesso spostando il cursore in avanti e di conseguenza l’ultimo processo leggerà ovviamente una parola in meno.
+La situazione particolare può avvenire quando un processore intermedio arriva al numero massimo di parole e gli manca solo l’ultima da leggere, in questo caso faccio si che legga anche l’ultima parola del file stesso spostando il cursore in avanti e di conseguenza l’ultimo leggerà ovviamente una parola in meno.
 
 **Lettura delle parole nei file e crezione degll'array contenente parola e frequenza**
 
 Il secondo punto che andiamo ad analizzare è l’analisi parola per parola all’interno dei file che troviamo nella lista inviata dal **Master**.
-Una volta entrati nel flusso di esecuzione degli slave il primo controllo che viene effettuato, precedente alla fase di analisi delle parole è quello di capire su quale processore siamo perché nel caso in cui siamo il quello con **rank 1**, si va ad aprire il file che si trova all’inizio dell’array; mentre nel caso in cui siamo in un processore diverso dal primo si prendono in considerazione dei parametri aggiuntivi come ad esempio:
+Una volta entrati nel flusso di esecuzione degli slave il primo controllo che viene effettuato, precedente alla fase di analisi delle parole è quello di capire su quale processore siamo perché nel caso in cui siamo quello con **rank 1**, si va ad aprire il file che si trova all’inizio dell’array; mentre nel caso in cui siamo in un processore diverso dal primo si prendono in considerazione dei parametri aggiuntivi come ad esempio:
 
 * **startOfAnotherPosition**: valore intero che può assumere i valori 0 e 1 ed indica al processore se bisogna partire da una posizione diversa rispetto all’inizio del file;
 * **indexFile**: come spiega il nome della variabile ci indica la posizione del file da aprire che può essere la stessa del processore precedente oppure quella successiva;
@@ -128,7 +128,7 @@ Come si evince dal codice precedente, all’interno del ciclo di analisi viene a
 
 **Invio e ricezione degli istogrammi locali al processo Master**
 
-Come descritto nel punto precedente i vari processori producono i loro istogrammi locali e una volta prodotti li inviano al **Master** che effettua una sorta di **merge** fra tutti gli istogrammi per produrre poi quello finale che conterrà tutte le parole dei vari processori e la loro frequenza totale.
+Come descritto nel punto precedente i vari processori producono i loro istogrammi locali e una volta prodotti li inviano al **Master** che effettua un **merge** fra tutti gli istogrammi per produrre poi quello finale che conterrà tutte le parole dei vari processori e la loro frequenza totale.
 Gli array finali che esso ottiene vengono passati ad una funzione **sortArray** che ordina le parole da quella con frequenza più alta a quella con frequenza più bassa.
 
 **Creazione del file .csv**
@@ -188,7 +188,7 @@ Di seguito i risultati in termini di tempo al variare del numero di processori:
 
 **Weak Scalability**
 
-Come detto in predenza per questo tipo di analisi si potevano utilizzare anche tempistiche ottenute in alcune casistiche della Strong Scalability. In aggiunta è stato provato un altro scenario di test
+Come detto in precedenza per questo tipo di analisi si potevano utilizzare anche tempistiche ottenute in alcune casistiche della Strong Scalability. In aggiunta è stato provato un altro scenario di test
 
 * Test con un file su 2 processori
 * Test con due file su 3 processori
