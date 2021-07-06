@@ -35,15 +35,15 @@ Adesso andiamo ad analizzare nel dettaglio punto per punto
 
 **Calcolo medio delle parole da leggere in un file**
 
-Il primo punto che analizziamo riguarda il calcolo medio delle parole da leggere per ogni singolo processo. Il processo Master prende in input un numero N di file da leggere, l’utente scrive il nome dei file che vuole prendere in considerazione e li inserisce all’interno di un array che mediante istruzione
+Il primo punto che analizziamo riguarda il calcolo medio delle parole da leggere per ogni singolo processore. Il **Master** prende in input un numero N di file da leggere, l’utente scrive il nome dei file che vuole prendere in considerazione e li inserisce all’interno di un array che mediante istruzione
 
 ```
 MPI_Bcast(list_file,MAX_NUMBER_FILE,typeNameFile,0,MPI_COMM_WORLD);
 ```
 
-invia a tutti gli **slave**. All’interno di esso, così come specificato dalla traccia, avviene il conteggio del numero di parole massimo che bisogna prendere in considerazione. Tutto questo viene ottenuto mediante la somma del numero di parole in ogni file, dividendolo poi per il numero di processori. 
-Nella mia soluzione ho fatto si che nel caso di parole pari, queste vengono divise in parti uguali tra i vari processi mentre nel caso di parole dispari ci sarà sempre un processo tra tutti che ne leggerà qualcuna in più e nel mio caso ho scelto di affidare questo compito all’ultimo processo della lista a meno che non si verifica una situazione particolare.
-L’informazione relativa al numero di parole massimo che uno slave può leggere e il resto della divisione tra processi che sarà uguale a 0 se le parole sono pari oppure N se le parole sono dispari, il Master la invia mediante istruzione MPI_Bcast come si evince dall’immagine seguente:
+invia a tutti gli **slave**. All’interno di esso, così come specificato dalla traccia, avviene il conteggio del numero di parole massimo che bisogna prendere in considerazione. Tutto questo viene ottenuto mediante la somma del numero di parole in ogni file, dividendolo poi,per il numero di processori. 
+Nella mia soluzione ho fatto si che nel caso di parole pari, queste vengono divise in parti uguali tra i vari processori mentre nel caso di parole dispari ci sarà sempre un processore tra tutti che ne leggerà qualcuna in più e nel mio caso ho scelto di affidare questo compito all’ultimo processore della lista a meno che non si verifica una situazione particolare.
+L’informazione relativa al numero di parole massimo che uno slave può leggere e il resto della divisione tra processori, che sarà uguale a 0 se le parole sono pari oppure N se le parole sono dispari, il Master la invia mediante istruzione MPI_Bcast come si evince dall’immagine seguente:
 
 ```
 char totalWord[50];
@@ -68,18 +68,18 @@ MPI_Bcast(&maxWords,1,MPI_INT,0,MPI_COMM_WORLD);
 MPI_Bcast(&maxResto,1,MPI_INT,0,MPI_COMM_WORLD);
 ```
 
-La situazione particolare può avvenire quando un processo intermedio arriva al numero massimo di parole e gli manca solo l’ultima da leggere, in questo caso faccio si che legga anche l’ultima parola del file stesso spostando il cursore in avanti e di conseguenza l’ultimo processo leggerà ovviamente una parola in meno.
+La situazione particolare può avvenire quando un processore intermedio arriva al numero massimo di parole e gli manca solo l’ultima da leggere, in questo caso faccio si che legga anche l’ultima parola del file stesso spostando il cursore in avanti e di conseguenza l’ultimo processo leggerà ovviamente una parola in meno.
 
 **Lettura delle parole nei file e crezione degll'array contenente parola e frequenza**
 
-Il secondo punto che andiamo ad analizzare è l’analisi parola per parola all’interno dei file che troviamo nella lista inviata dal processo Master.
-Una volta entrati nel flusso di esecuzione degli slave il primo controllo che viene effettuato, precedente alla fase di analisi delle parole è quello di capire su quale processo siamo perché nel caso in cui siamo il processo con rank 1, si va ad aprire il file che si trova all’inizio dell’array; mentre nel caso in cui siamo in un processo diverso dal primo si prendono in considerazione dei parametri aggiuntivi come ad esempio:
+Il secondo punto che andiamo ad analizzare è l’analisi parola per parola all’interno dei file che troviamo nella lista inviata dal **Master**.
+Una volta entrati nel flusso di esecuzione degli slave il primo controllo che viene effettuato, precedente alla fase di analisi delle parole è quello di capire su quale processore siamo perché nel caso in cui siamo il quello con **rank 1**, si va ad aprire il file che si trova all’inizio dell’array; mentre nel caso in cui siamo in un processore diverso dal primo si prendono in considerazione dei parametri aggiuntivi come ad esempio:
 
-* **startOfAnotherPosition**: valore intero che può assumere i valori 0 e 1 ed indica al processo se bisogna partire da una posizione diversa rispetto all’inizio del file;
-* **indexFile**: come spiega il nome della variabile ci indica la posizione del file da aprire che può essere la stessa del processo precedente oppure quella successiva;
+* **startOfAnotherPosition**: valore intero che può assumere i valori 0 e 1 ed indica al processore se bisogna partire da una posizione diversa rispetto all’inizio del file;
+* **indexFile**: come spiega il nome della variabile ci indica la posizione del file da aprire che può essere la stessa del processore precedente oppure quella successiva;
 * **currentPositionInFile**: contiene la posizione del cursore all’interno del file
 
-Nel caso in cui il valore dello **startOfAnotherPosition** è uguale ad 1 vuol dire che il processo precedente ha letto il numero massimo di valori senza però arrivare alla fine del file e di conseguenza, si usa l’istruzione
+Nel caso in cui il valore dello **startOfAnotherPosition** è uguale ad 1 vuol dire che il processore precedente ha letto il numero massimo di valori senza però arrivare alla fine del file e di conseguenza, si usa l’istruzione
 
 ```
 fseek(fp, currentPositionInFile, SEEK_SET);
@@ -87,7 +87,7 @@ fseek(fp, currentPositionInFile, SEEK_SET);
 
 per riaprire lo stesso file ma da una posizione diversa da quella iniziale.
 
-Una volta effettuato il controllo spiegato precedentemente sul processo 1 si va ad effettuare l’analisi delle parole contenute all’interno del file fino a quando non si arriva alla fine del file oppure fino a quando la variabile **count_read_word**, che conta il numero di parole lette dal processo, non arriva al massimo di parole che quel processo può leggere.
+Una volta effettuato il controllo spiegato precedentemente sul processore 1 si va ad effettuare l’analisi delle parole contenute all’interno del file fino a quando non si arriva alla fine del file oppure fino a quando la variabile **count_read_word**, che conta il numero di parole lette, non arriva alla soglia massima.
 
 ```
 while (fscanf(fp, "%s", word) != EOF && count_read_word<maxParole ){
@@ -123,17 +123,17 @@ while (fscanf(fp, "%s", word) != EOF && count_read_word<maxParole ){
 }
 ```
 
-Come si evince dallo snippet di codice, all’interno del ciclo di analisi viene aggiornato il valore della posizione del cursore da poi eventualmente inviare al processo successivo; viene richiamata una funzione **strlwr** alla quale si passa in input la parola e se maiuscola la si trasforma in minuscolo; viene utilizzara la funzione **ispunct** che rimuove il punto se presente dopo la parola; vengono costruiti gli array **words** e **count** che conterranno i valori utili a produrre l’istogramma locale del processo (parole e rispettive frequenze).
+Come si evince dal codice precedente, all’interno del ciclo di analisi viene aggiornato il valore della posizione del cursore da poi eventualmente inviare al processore successivo; viene richiamata una funzione **strlwr** alla quale si passa in input la parola e se maiuscola la si trasforma in minuscolo; viene utilizzara la funzione **ispunct** che rimuove il punto se presente dopo la parola; vengono costruiti gli array **words** e **count** che conterranno i valori utili a produrre l’istogramma locale(parole e rispettive frequenze).
 
 
 **Invio e ricezione degli istogrammi locali al processo Master**
 
-Come descritto nel punto precedente i vari processi producono i loro istogrammi locali e una volta prodotti li inviano al Master che effettua una sorta di **merge** fra tutti gli istogrammi per produrre poi quello finale che conterrà tutte le parole dei vari processi e la loro frequenza totale.
+Come descritto nel punto precedente i vari processori producono i loro istogrammi locali e una volta prodotti li inviano al **Master** che effettua una sorta di **merge** fra tutti gli istogrammi per produrre poi quello finale che conterrà tutte le parole dei vari processori e la loro frequenza totale.
 Gli array finali che esso ottiene vengono passati ad una funzione **sortArray** che ordina le parole da quella con frequenza più alta a quella con frequenza più bassa.
 
 **Creazione del file .csv**
 
-Dopo aver effettuato l’ordinamento degli array, l’ultima operazione è quella di creare un file Excel contenente tutte queste informazioni, mediante le seguenti operazioni: 
+Dopo aver effettuato l’ordinamento degli array, l’ultima operazione è quella di creare un file .cvs contenente tutte queste informazioni, mediante le seguenti operazioni: 
 
 ```
 fpt = fopen("FinalHistograms.csv", "w+");
